@@ -1,0 +1,47 @@
+name: Update datasets
+
+on:
+  schedule:
+    - cron: "* * 1 * *"
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+      # Python setup
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.8" # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: "x64" # optional x64 or x86. Defaults to x64 if not specified
+          cache: "pip"
+      - name: Installing dependencies
+        run: pip -r requirements.txt
+      - name: Install PyTest
+        run: pip install pytest
+      # Run tests
+      - name: Run tests
+        run: pytest
+  scraping:
+    runs-on: ubuntu-18.04
+    steps:
+      # Python setup
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.8" # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: "x64" # optional x64 or x86. Defaults to x64 if not specified
+          cache: "pip"
+      - name: Installing dependencies
+        run: pip -r requirements.txt
+      # Run main.py
+      - name: Run scraper
+        run: python main.py
+
+      - name: Save datasets
+        run: |
+          git config user.name jbuendia1y
+          git config user.email jgamer669@gmail.com
+          git add datasets/**/*
+          git diff --quiet && git diff --staged --quiet || git commit -m "[bot] Update datasets"
+          git push origin main
