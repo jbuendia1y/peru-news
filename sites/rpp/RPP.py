@@ -1,32 +1,34 @@
-import json
 from typing import List
+from datetime import datetime
 
-import requests
 from models.New import New
 from sites.Page import Page
-from . import constants
-import utils.scraper as scraper
-from utils.date import str_to_date
-from bs4 import BeautifulSoup
+from utils.scraper import parse_xml_from_url
 
-# .col-primary .flow-row article -> list of article
-# title = h2
-# image_url = figure img
-# created_at = time[data-x]
-# original_url = h2 a[href]
+import constants
+
+BASE_URL = "https://rpp.pe"
+UNPARSED_DATE_FORMAT = "%a, %d %b %Y %H:%M:%S %z"
 
 
 def formatter(data: dict) -> New:
-    created_at = str_to_date(data["created_at"])
+    created_at = datetime.strptime(
+        data["created_at"],
+        UNPARSED_DATE_FORMAT
+    ).astimezone(constants.tz_utc)
+
     image_url = data["image_url"]
     title = data["title"]
+    description = data["description"]
     original_url = data["original_url"]
 
     return New(
         image_url=image_url,
         title=title,
+        description=description,
         original_url=original_url,
-        created_at=created_at
+        created_at=created_at,
+        website=BASE_URL
     )
 
 
@@ -37,28 +39,16 @@ class RPP(Page):
         )
 
     def get_news(self) -> List[New]:
-        req = requests.get(constants.NEWS_PAGE)
-
-        html = req.text
-        soup = BeautifulSoup(html, "lxml")
-        articles = soup.select('div[class*="flow-row"]')[0].find_all("article")
-
+        d = parse_xml_from_url(BASE_URL + "/rss")
         data: List[New] = []
 
-        for article in articles:
-            title = article.find("h2").text
-            min_html = json.loads(article.find(
-                "figure").find("a")["data-x"])["content"]
-            min_soup = BeautifulSoup(min_html, "lxml")
-            image_url = min_soup.find("img")["src"]
-            created_at = article.find("time")["data-x"]
-            original_url = article.find("h2").find("a")["href"]
-
+        for entry in d["entries"]:
             data.append(self.formatter({
-                "title": title,
-                "image_url": image_url,
-                "created_at": created_at,
-                "original_url": original_url,
+                "title": entry.title,
+                "description": entry.description,
+                "image_url": entry.media_content[0]["url"],
+                "created_at": entry.published,
+                "original_url": entry.link
             }))
 
         return data

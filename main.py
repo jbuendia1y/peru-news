@@ -1,10 +1,5 @@
-from sites import sites
 import asyncio
-import json
-from bs4 import BeautifulSoup
-import requests
-from sites.Page import Page
-from sites.canal_n import constants
+from sites import sites
 
 
 async def main():

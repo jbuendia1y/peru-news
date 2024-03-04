@@ -1,22 +1,15 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.webdriver import WebDriver
-import os
+import requests
+import feedparser
 
 
-def init_scrapper() -> WebDriver:
-    """ Initialize the selenium driver """
-    project_dir = os.getcwd()
-    drivers_dir = "drivers"
-    driver_filename = "chromedriver"
+def parse_xml_from_url(url: str):
+    res = requests.get(url)
+    xmltext = res.content
+    d = feedparser.parse(xmltext)
 
-    absolute_driver_path = os.path.join(
-        project_dir,
-        drivers_dir,
-        driver_filename
-    )
+    return d
 
-    driver = webdriver.Chrome(
-        executable_path=absolute_driver_path
-    )
 
-    return driver
+def parse_json_from_url(url: str):
+    res = requests.get(url)
+    return res.json()

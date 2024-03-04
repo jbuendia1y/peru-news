@@ -1,46 +1,34 @@
-import requests
+import pprint
 from typing import List
-from . import constants
+from datetime import datetime
+
 from models.New import New
 from sites.Page import Page
-from utils.date import str_to_date
+from utils.scraper import parse_xml_from_url
 
+import constants
 
-def basic(data: dict) -> str:
-    return data["url"]
-
-
-def basic_jwplayer(data: dict) -> str:
-    return data["embed"]["config"]["thumbnail_url"]
-
-
-def basic_gallery(data: dict) -> str:
-    return data["promo_items"]["basic"]["url"]
-
-
-def get_image_of_promo_items(data: dict) -> str:
-    basics = {
-        "basic_jwplayer": basic_jwplayer,
-        "basic": basic,
-        "basic_gallery": basic_gallery
-    }
-
-    for key in data:
-        return basics[key](data[key])
+BASE_URL = "https://elcomercio.pe"
+UNPARSED_DATE_FORMAT = "%a, %d %b %Y %H:%M:%S %z"
 
 
 def format_new(data: dict) -> New:
-    created_at = str_to_date(data["display_date"])
-    title = data["headlines"]["basic"]
-    image_url = get_image_of_promo_items(data["promo_items"])
-    original_url = constants.BASE_URL + \
-        data["websites"]["elcomercio"]["website_url"]
+    image_url = data["image_url"]
+    title = data["title"]
+    description = data["description"]
+    original_url = data["original_url"]
+    created_at = datetime.strptime(
+        data["created_at"],
+        UNPARSED_DATE_FORMAT
+    ).astimezone(constants.tz_utc)
 
     new = New(
         title=title,
+        description=description,
         image_url=image_url,
         original_url=original_url,
-        created_at=created_at
+        created_at=created_at,
+        website=BASE_URL
     )
     return new
 
@@ -52,7 +40,20 @@ class ElComercio(Page):
         )
 
     def get_news(self) -> List[New]:
-        req = requests.get(constants.API_NEWS_URL)
-        req_data = req.json()["content_elements"]
-        data = [self.formatter(new) for new in req_data]
+        d = parse_xml_from_url(
+            BASE_URL + "/arc/outboundfeeds/rss/?outputType=xml")
+
+        data: List[New] = []
+
+        for entry in d["entries"]:
+            media_content = getattr(entry, "media_content", None)
+
+            data.append(self.formatter({
+                "title": entry.title,
+                "description": entry.description,
+                "created_at": entry.published,
+                "original_url": entry.link,
+                "image_url": media_content[0]["url"] if media_content else None
+            }))
+
         return data
