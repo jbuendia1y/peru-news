@@ -7,7 +7,7 @@ import os
 class Page:
     """
         Attributes:
-            - formatter (function) to format new to New dataclass
+            - formatter (function) to format dict to New dataclass
             - output_filename (str) optional filename to save all news
     """
 
@@ -18,9 +18,11 @@ class Page:
     def deserialize_new(self, new: New) -> Dict[str, Any]:
         return {
             "title": new.title,
+            "description": new.description,
             "image_url": new.image_url,
             "original_url": new.original_url,
-            "created_at": new.created_at
+            "created_at": new.created_at,
+            "website": new.website
         }
 
     def save_news(self, news):
@@ -35,10 +37,10 @@ class Page:
             df.to_csv(self.output_path, index=False)
 
     def get_news(self) -> List[New]:
-        pass
+        raise "Method not implemented"
 
     async def run(self):
         print(f"FETCHING ALL NEWS OF PAGE {self.__class__.__name__}")
         news = self.get_news()
-        print("NEWS FETCHED")
+        print(f"{len(news)} NEWS FETCHED")
         self.save_news(news)

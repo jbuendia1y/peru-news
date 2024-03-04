@@ -1,24 +1,32 @@
 from datetime import datetime
-import json
 from typing import List
-from bs4 import BeautifulSoup
-import requests
 from models.New import New
 from sites.Page import Page
-from . import constants
+from utils.scraper import parse_xml_from_url
+import constants
+
+BASE_URL = "https://canaln.pe"
+UNPARSED_DATE_FORMAT = "%a, %d %b %Y %H:%M:%S %Z"
 
 
 def formatter(data: dict) -> New:
-    created_at = datetime.strptime(data["created_at"], constants.TIME_FORMAT)
+    created_at = datetime.strptime(
+        data["created_at"],
+        UNPARSED_DATE_FORMAT
+    ).astimezone(constants.tz_utc)
+
+    description = data["description"]
     title = data["title"]
     image_url = data["image_url"]
     original_url = data["original_url"]
 
     return New(
         created_at=created_at,
+        description=description,
         title=title,
         image_url=image_url,
         original_url=original_url,
+        website=BASE_URL
     )
 
 
@@ -27,37 +35,17 @@ class CanalN(Page):
         super().__init__(formatter=formatter)
 
     def get_news(self):
-        req = requests.get(constants.NEWS_PAGE)
-        html = json.loads(req.text)["noticias_html"]
-        soup = BeautifulSoup(html, "lxml")
-        items = soup.find_all("div", {
-            "class": "nota_tab"
-        })
+        d = parse_xml_from_url(f"{BASE_URL}/feed")
 
         data: List[New] = []
 
-        for item in items:
-            """
-                title = h1
-                image_url = img["src"]
-                original_url = a[class = ".portada-prin"]["href"]
-            """
-            title = item.find("span", {
-                "class": "span14"
-            }).text
-            image_url = item.find("img")["src"]
-            original_url = item.find("a", {
-                "class": "crono-hover"
-            })["href"]
-            created_at = item.find("time").text.replace("\n", "").strip()
-
-            new = self.formatter({
-                "title": title,
-                "image_url": image_url,
-                "original_url": original_url,
-                "created_at": created_at,
-            })
-
-            data.append(new)
+        for entry in d["entries"]:
+            data.append(self.formatter({
+                "title": entry.title,
+                "description": entry.description,
+                "created_at": entry.published,
+                "image_url": None,
+                "original_url": entry.link,
+            }))
 
         return data
