@@ -38,4 +38,4 @@ jobs:
           git config user.email jbuendia1y@gmail.com
           git add datasets/news.csv
           git diff --quiet && git diff --staged --quiet || git commit -m "[bot] Update dataset with latest news"
-          git push origin master
+          git push origin main
