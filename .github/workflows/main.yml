@@ -1,4 +1,4 @@
-name: Update datasets
+name: Scrapping news
 
 on:
   schedule:
