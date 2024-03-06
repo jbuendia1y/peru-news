@@ -8,34 +8,34 @@ jobs:
   scraping:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.12" # Version range or exact version of a Python version to use, using SemVer's version range syntax
-          architecture: "x64" # optional x64 or x86. Defaults to x64 if not specified
-          cache: "pip"
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.12" # Version range or exact version of a Python version to use, using SemVer's version range syntax
+        architecture: "x64" # optional x64 or x86. Defaults to x64 if not specified
+        cache: "pip"
           
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2
-      - name: Poetry settings
-        run: |
-          poetry config virtualenvs.create true --local
-          poetry config virtualenvs.in-project true --local
-      - uses: actions/cache@v3
-        name: Define a cache for the virtual environment based on the dependencies lock file
-        with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
+    - name: Install poetry
+      uses: abatilo/actions-poetry@v2
+    - name: Poetry settings
+      run: |
+        poetry config virtualenvs.create true --local
+        poetry config virtualenvs.in-project true --local
+    - uses: actions/cache@v3
+      name: Define a cache for the virtual environment based on the dependencies lock file
+      with:
+        path: ./.venv
+        key: venv-${{ hashFiles('poetry.lock') }}
         
-      - name: Installing dependencies
-        run: poetry install
-      - name: Run scraper
-        run: poetry run python main.py
+    - name: Installing dependencies
+      run: poetry install
+    - name: Run scraper
+      run: poetry run python main.py
 
-      - name: Update dataset
-        run: |
-          git config user.name jbuendia1y
-          git config user.email jbuendia1y@gmail.com
-          git add datasets/news.csv
-          git diff --quiet && git diff --staged --quiet || git commit -m "[bot] Update dataset with latest news"
-          git push origin main
+    - name: Update dataset
+      run: |
+        git config user.name jbuendia1y
+        git config user.email jbuendia1y@gmail.com
+        git add datasets/news.csv
+        git diff --quiet && git diff --staged --quiet || git commit -m "[bot] Update dataset with latest news"
+        git push origin main
