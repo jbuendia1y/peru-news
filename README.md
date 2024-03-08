@@ -8,6 +8,6 @@ Noticias del Perú recolectadas de páginas web:
 | El Comercio | [🔗](https://elcomercio.pe) | ✔️ |
 | Canal N | [🔗](https://canaln.pe) | ✔️ No tiene `media:content` |
 | Peru 21 | [🔗](https://peru21.pe) | ✔️ ❌No está actualizado |
+| El Peruano | [🔗](https://www.elperuano.pe) | ❌ |
 
-
-Los datasets se actualizan cada mes
+Los datasets se cada día
