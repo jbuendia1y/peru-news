@@ -2,6 +2,7 @@ from sites.el_comercio.ElComercio import ElComercio
 from sites.rpp.RPP import RPP
 from sites.canal_n.CanalN import CanalN
 from sites.el_peruano.ElPeruano import ElPeruano
+from sites.peru21.Peru21 import Peru21
 
 import asyncio
 
@@ -12,6 +13,7 @@ async def run():
         ElComercio().run(),
         RPP().run(),
         CanalN().run(),
-        ElPeruano().run()
+        ElPeruano().run(),
+        Peru21().run()
     ])
     print("Sites scraping ends")
