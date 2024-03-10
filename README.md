@@ -11,4 +11,4 @@ Noticias del Perú recolectadas de páginas web:
 | El Peruano | [🔗](https://www.elperuano.pe) | ❌ |
 | Latina | [🔗](https://www.latina.pe) | ✔️ No tiene `media:content` |
 
-Los datasets se cada día
+Los datasets actualizan se cada día
