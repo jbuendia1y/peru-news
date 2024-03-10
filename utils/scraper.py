@@ -9,6 +9,11 @@ def scrap_html_from_url(url: str):
     return soup
 
 
+def scrap_html_from_str(value: str):
+    soup = bs4.BeautifulSoup(value, "html.parser")
+    return soup
+
+
 def parse_xml_from_url(url: str):
     res = requests.get(url)
     xmltext = res.content
