@@ -34,10 +34,13 @@ class Peru21(Page):
         data: List[New] = []
 
         for elemment in body["content_elements"]:
+            image_url = dict.get(
+                dict.get(elemment["promo_items"], "basic", {}), "url", None)
+
             data.append(self.formatter({
                 "title": elemment["headlines"]["basic"],
                 "description": elemment["subheadlines"]["basic"],
-                "image_url": elemment["promo_items"]["basic"]["url"],
+                "image_url": image_url,
                 "original_url": elemment["websites"]["peru21"]["website_url"],
                 "created_at": elemment["display_date"]
             }))
