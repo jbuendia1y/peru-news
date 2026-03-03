@@ -2,20 +2,22 @@ from typing import List
 from datetime import datetime
 
 from models.New import New
-from sites.Page import Page
 from utils.scraper import parse_xml_from_url
 
 import constants
 
+SITENAME = "RPP Noticias"
 BASE_URL = "https://rpp.pe"
+ROBOTS_URL = f"{BASE_URL}/robots.txt"
+TO_SCRAP_URL = f"{BASE_URL}/rss"
+
 UNPARSED_DATE_FORMAT = "%a, %d %b %Y %H:%M:%S %z"
 
 
 def formatter(data: dict) -> New:
-    created_at = datetime.strptime(
-        data["created_at"],
-        UNPARSED_DATE_FORMAT
-    ).astimezone(constants.tz_utc)
+    created_at = datetime.strptime(data["created_at"], UNPARSED_DATE_FORMAT).astimezone(
+        constants.tz_utc
+    )
 
     image_url = data["image_url"]
     title = data["title"]
@@ -28,27 +30,26 @@ def formatter(data: dict) -> New:
         description=description,
         original_url=original_url,
         created_at=created_at,
-        website=BASE_URL
+        website=BASE_URL,
     )
 
 
-class RPP(Page):
-    def __init__(self):
-        super().__init__(
-            formatter,
-        )
+async def scrap() -> List[New]:
+    xml = parse_xml_from_url(TO_SCRAP_URL)
 
-    def get_news(self) -> List[New]:
-        d = parse_xml_from_url(BASE_URL + "/rss")
-        data: List[New] = []
-
-        for entry in d["entries"]:
-            data.append(self.formatter({
+    data: List[New] = [
+        formatter(
+            {
                 "title": entry.title,
                 "description": entry.description,
-                "image_url": entry.media_content[0]["url"],
+                "image_url": entry.media_content[0]["url"]
+                if getattr(entry, "media_content", None)
+                else None,
                 "created_at": entry.published,
-                "original_url": entry.link
-            }))
+                "original_url": entry.link,
+            }
+        )
+        for entry in xml["entries"]
+    ]
 
-        return data
+    return list(data)
